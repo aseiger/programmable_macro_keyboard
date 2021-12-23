@@ -44,12 +44,19 @@ const int switch_cols[NUM_COLS] = {COL_4_PIN, COL_3_PIN, COL_2_PIN, COL_1_PIN, C
 bool switch_states[NUM_SWITCHES] = {false};
 bool previous_switch_states[NUM_SWITCHES] = {false};
 
-#define NUM_LAYERS 5
-const String layer_names[NUM_LAYERS] = {"Disabled", "Nav Cluster", "Numpad", "Macro + Nav", "COD Warzone"};
+#define NUM_LAYERS 6
+const String layer_names[NUM_LAYERS] = {"Disabled", "Nav Cluster", "Numpad", "Macro + Nav", "COD Warzone", "F360 Electronics"};
 int layer_number = 0;
 
-#define KEYCODE_MASK 0xFF
-#define IS_MACRO     0x1000
+#define KEYCODE_MASK     0xFF
+#define IS_MACRO         0x1000
+#define MACRO_PRESS      0x0100
+#define MACRO_RELEASE    0x0200
+#define SMART_NUMLOCK_SET    0x0400
+#define SMART_NUMLOCK_CLEAR  0x0800 
+#define IS_MOUSE_PRESS   0xA000
+#define IS_MOUSE_RELEASE 0x6000
+#define IS_MOUSE         0x2000
 const uint16_t PROGMEM layer_mappings[NUM_LAYERS][NUM_SWITCHES] = 
 { 
 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -72,13 +79,16 @@ const uint16_t PROGMEM layer_mappings[NUM_LAYERS][NUM_SWITCHES] =
 {KEY_ESC,        KEY_1,          KEY_2,          KEY_3,           KEY_4, 
  KEY_TAB,        KEY_Q,          KEY_W,          KEY_E,           KEY_R,
  KEY_M,          KEY_A,          KEY_S,          KEY_D,           KEY_F, 
- KEY_LEFT_SHIFT, KEY_N,          KEY_X,          KEY_G,           KEY_SPACE}
+ KEY_LEFT_SHIFT, KEY_N,          KEY_X,          KEY_G,           KEY_SPACE},
+
+{IS_MACRO|23,    IS_MACRO|31,          IS_MACRO|15,          IS_MACRO|34,           IS_MACRO|27, 
+ IS_MACRO|24,    IS_MACRO|32,          IS_MACRO|16,          IS_MACRO|35,           IS_MACRO|28,
+ IS_MACRO|25,    IS_MACRO|33,          IS_MACRO|17,          IS_MACRO|36,           IS_MACRO|29, 
+ IS_MACRO|26,    IS_MACRO|38,          IS_MACRO|18,          IS_MACRO|37,           IS_MACRO|30}
 };
 
-#define NUM_MACROS 23
+#define NUM_MACROS 39
 #define MAX_MACRO_LENGTH 32
-#define MACRO_PRESS 0x100
-#define MACRO_RELEASE 0x200
 const uint16_t PROGMEM macros[NUM_MACROS][MAX_MACRO_LENGTH+1] =
 {
 /*0 Select All*/{4, MACRO_PRESS|KEY_LEFT_CTRL, MACRO_PRESS|KEY_A, MACRO_RELEASE|KEY_LEFT_CTRL, MACRO_RELEASE|KEY_A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -96,14 +106,30 @@ const uint16_t PROGMEM macros[NUM_MACROS][MAX_MACRO_LENGTH+1] =
 /*12 int*/{4, KEY_I, KEY_N, KEY_T, KEY_SPACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 /*13 char*/{5, KEY_C, KEY_H, KEY_A, KEY_R, KEY_SPACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 /*14 string*/{7, KEY_S, KEY_T, KEY_R, KEY_I, KEY_N, KEY_G, KEY_SPACE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*15 °*/{6, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_0, KEYPAD_1, KEYPAD_7, KEYPAD_6, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*16 ±*/{6, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_0, KEYPAD_1, KEYPAD_7, KEYPAD_7, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*17 µ*/{6, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_0, KEYPAD_1, KEYPAD_8, KEYPAD_1, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*18 Ω*/{5, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_3, KEYPAD_4, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*19 ≈*/{5, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_4, KEYPAD_7, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*20 ≥*/{5, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_4, KEYPAD_2, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*21 ≤*/{5, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_4, KEYPAD_3, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-/*22 π*/{5, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_2, KEYPAD_7, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*15 °*/{8, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_0, KEYPAD_1, KEYPAD_7, KEYPAD_6, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*16 ±*/{8, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_0, KEYPAD_1, KEYPAD_7, KEYPAD_7, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*17 µ*/{8, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_0, KEYPAD_1, KEYPAD_8, KEYPAD_1, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*18 Ω*/{7, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_3, KEYPAD_4, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*19 ≈*/{7, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_4, KEYPAD_7, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*20 ≥*/{7, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_4, KEYPAD_2, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*21 ≤*/{7, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_4, KEYPAD_3, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*22 π*/{7, SMART_NUMLOCK_SET, MACRO_PRESS|KEY_LEFT_ALT, KEYPAD_2, KEYPAD_2, KEYPAD_7, MACRO_RELEASE|KEY_LEFT_ALT, SMART_NUMLOCK_CLEAR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*23 F360 Data Panel*/ {6, MACRO_PRESS|KEY_LEFT_CTRL, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_P, MACRO_RELEASE|KEY_P, MACRO_RELEASE|KEY_LEFT_ALT, MACRO_RELEASE|KEY_LEFT_CTRL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*24 F360 Design Manager*/ {6, MACRO_PRESS|KEY_LEFT_CTRL, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_E, MACRO_RELEASE|KEY_E, MACRO_RELEASE|KEY_LEFT_ALT, MACRO_RELEASE|KEY_LEFT_CTRL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*25 F360 Inspector*/ {6, MACRO_PRESS|KEY_LEFT_CTRL, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_I, MACRO_RELEASE|KEY_I, MACRO_RELEASE|KEY_LEFT_ALT, MACRO_RELEASE|KEY_LEFT_CTRL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*26 F360 Slection Filter*/ {6, MACRO_PRESS|KEY_LEFT_CTRL, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_F, MACRO_RELEASE|KEY_F, MACRO_RELEASE|KEY_LEFT_ALT, MACRO_RELEASE|KEY_LEFT_CTRL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*27 F360 Change Layer 0*/ {2, IS_MOUSE|MOUSE_MIDDLE, KEY_ENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*28 F360 Change Layer 1*/ {3, IS_MOUSE|MOUSE_MIDDLE, KEY_DOWN, KEY_ENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*29 F360 Change Layer 2*/ {4, IS_MOUSE|MOUSE_MIDDLE, KEY_DOWN, KEY_DOWN, KEY_ENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*30 F360 Change Layer 3*/ {5, IS_MOUSE|MOUSE_MIDDLE, KEY_DOWN, KEY_DOWN, KEY_DOWN, KEY_ENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*31 F360 Attribute*/ {6, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_LEFT_SHIFT, MACRO_PRESS|KEY_A, MACRO_RELEASE|KEY_A, MACRO_RELEASE|KEY_LEFT_SHIFT, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*32 F360 New Part Number Attribute*/ {25, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_LEFT_SHIFT, MACRO_PRESS|KEY_A, MACRO_RELEASE|KEY_A, MACRO_RELEASE|KEY_LEFT_SHIFT, MACRO_RELEASE|KEY_LEFT_ALT, IS_MOUSE|MOUSE_LEFT, IS_MOUSE|MOUSE_LEFT, KEY_TAB, KEY_TAB, KEY_ENTER, MACRO_PRESS|KEY_LEFT_SHIFT, KEY_P, KEY_A, KEY_R, KEY_T, KEY_MINUS, KEY_N, KEY_U, KEY_M, KEY_B, KEY_E, KEY_R, MACRO_RELEASE|KEY_LEFT_SHIFT, KEY_TAB, 0, 0, 0, 0, 0, 0, 0},
+/*33 F360 Edit Part Number Attribute*/ {12, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_LEFT_SHIFT, MACRO_PRESS|KEY_A, MACRO_RELEASE|KEY_A, MACRO_RELEASE|KEY_LEFT_SHIFT, MACRO_RELEASE|KEY_LEFT_ALT, IS_MOUSE|MOUSE_LEFT, IS_MOUSE|MOUSE_LEFT, KEY_TAB, KEY_TAB, KEY_TAB, KEY_ENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*34 F360 Ignore Violators*/ {4, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_I, MACRO_RELEASE|KEY_I, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*35 F360 Push Violators*/ {4, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_P, MACRO_RELEASE|KEY_P, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*36 F360 Walk Around Violators*/ {4, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_W, MACRO_RELEASE|KEY_W, MACRO_RELEASE|KEY_LEFT_ALT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*37 F360 Push Vias*/ {4, MACRO_PRESS|KEY_LEFT_SHIFT, MACRO_PRESS|KEY_V, MACRO_RELEASE|KEY_V, MACRO_RELEASE|KEY_LEFT_SHIFT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+/*38 F360 Single Layer Mode*/ {6, MACRO_PRESS|KEY_LEFT_SHIFT, MACRO_PRESS|KEY_LEFT_ALT, MACRO_PRESS|KEY_L, MACRO_RELEASE|KEY_L, MACRO_RELEASE|KEY_LEFT_ALT, MACRO_RELEASE|KEY_LEFT_SHIFT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
 void checkPosition()
@@ -144,7 +170,6 @@ void draw_display()
     {
       u8g2.drawStr(0,10,"NL");  // write something to the internal memory
     }
-
     if (scroll_lock_state)
     {
       u8g2.drawStr(16,10,"SL");  // write something to the internal memory
@@ -220,6 +245,7 @@ void setup(void) {
   pinMode(ENCODER_IN2, INPUT_PULLUP);
   pinMode(ENCODER_BUTTON, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
+  u8g2.setContrast(0);
 
   for (int i = 0; i < NUM_ROWS; i++)
   {
@@ -238,6 +264,8 @@ void setup(void) {
   Consumer.begin();
   BootKeyboard.begin();
   NKROKeyboard.begin();
+  Mouse.begin();
+//  BootKeyboard.setSuspendCallback();
   Serial.begin(115200);
 }
 
@@ -288,6 +316,17 @@ void loop(void) {
     }
   }
 
+  int ledStates = BootKeyboard.getLeds();
+  if (ledStates != previous_led_state)
+  {
+    previous_led_state = ledStates;
+    do_display_update = true;
+  }
+  
+  caps_lock_state = ledStates & LED_CAPS_LOCK;
+  num_lock_state = ledStates & LED_NUM_LOCK;
+  scroll_lock_state = ledStates & LED_SCROLL_LOCK;
+
   //output keycodes
   bool do_nkro_update = false;
   for (int i = 0; i < NUM_SWITCHES; i++)
@@ -296,13 +335,31 @@ void loop(void) {
     {
       KeyboardKeycode keycode = (KEYCODE_MASK & pgm_read_byte_near(&layer_mappings[layer_number][i]));
       bool is_macro = (IS_MACRO & pgm_read_word_near(&layer_mappings[layer_number][i])) ? true : false;
+      bool is_mouse = (IS_MOUSE & pgm_read_word_near(&layer_mappings[layer_number][i])) ? true : false;
       if(switch_states[i] == true)
       {
-        if(!is_macro)
+        if(!is_macro & !is_mouse)
         {
           NKROKeyboard.add(keycode);
           update_keycode_history(keycode);
           do_nkro_update = true;
+        }
+        else if(is_mouse)
+        {
+          bool is_mouse_press = (IS_MOUSE_PRESS & pgm_read_word_near(&layer_mappings[layer_number][i])) == IS_MOUSE_PRESS ? true : false;
+          bool is_mouse_release = (IS_MOUSE_RELEASE & pgm_read_word_near(&layer_mappings[layer_number][i])) == IS_MOUSE_RELEASE ? true : false;
+          if(is_mouse_press)
+          {
+            Mouse.press(keycode);
+          }
+          else if (is_mouse_release)
+          {
+            Mouse.release(keycode);
+          }
+          else
+          {
+            Mouse.click(keycode);
+          }
         }
         else
         {
@@ -315,21 +372,62 @@ void loop(void) {
               for(int i = 0; i < macro_length; i++)
               {
                 uint16_t macro_keycode = pgm_read_word_near(&macros[keycode][i+1]);
-                if(macro_keycode & MACRO_PRESS)
+                bool is_mouse = (IS_MOUSE & macro_keycode) ? true : false;
+                if(is_mouse)
                 {
-                  NKROKeyboard.add((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));  
-                  NKROKeyboard.send();
-                  update_keycode_history((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
-                }
-                else if(macro_keycode & MACRO_RELEASE)
-                {
-                  NKROKeyboard.remove((KeyboardKeycode)(KEYCODE_MASK & macro_keycode)); 
-                  NKROKeyboard.send(); 
+                  if((macro_keycode & IS_MOUSE_PRESS) == IS_MOUSE_PRESS)
+                  {
+                    Mouse.press(macro_keycode & 0xFF);
+                  }
+                  else if((macro_keycode & IS_MOUSE_RELEASE) == IS_MOUSE_RELEASE)
+                  {
+                    Mouse.release(macro_keycode & 0xFF);
+                  }
+                  else
+                  {
+                    Mouse.click(macro_keycode & 0xFF);
+                  }
                 }
                 else
                 {
-                  NKROKeyboard.write((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
-                  update_keycode_history((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
+                  static bool do_num_lock_toggle = false;
+                  if(macro_keycode == SMART_NUMLOCK_SET)
+                  {
+                    if(num_lock_state == false)
+                    {
+                      do_num_lock_toggle = true;
+                      NKROKeyboard.write(KEY_NUM_LOCK);
+                      update_keycode_history((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
+                    }
+                  }
+                  else if(macro_keycode == SMART_NUMLOCK_CLEAR)
+                  {
+                    if(do_num_lock_toggle)
+                    {
+                      do_num_lock_toggle = false;
+                      NKROKeyboard.write(KEY_NUM_LOCK);
+                      update_keycode_history((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
+                    }
+                  }
+                  else
+                  {
+                    if(macro_keycode & MACRO_PRESS)
+                    {
+                      NKROKeyboard.add((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));  
+                      NKROKeyboard.send();
+                      update_keycode_history((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
+                    }
+                    else if(macro_keycode & MACRO_RELEASE)
+                    {
+                      NKROKeyboard.remove((KeyboardKeycode)(KEYCODE_MASK & macro_keycode)); 
+                      NKROKeyboard.send(); 
+                    }
+                    else
+                    {
+                      NKROKeyboard.write((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
+                      update_keycode_history((KeyboardKeycode)(KEYCODE_MASK & macro_keycode));
+                    }
+                  }
                 }
               } 
             }
@@ -351,17 +449,6 @@ void loop(void) {
   {
     NKROKeyboard.send();
   }
-
-  int ledStates = BootKeyboard.getLeds();
-  if (ledStates != previous_led_state)
-  {
-    previous_led_state = ledStates;
-    do_display_update = true;
-  }
-  
-  caps_lock_state = ledStates & LED_CAPS_LOCK;
-  num_lock_state = ledStates & LED_NUM_LOCK;
-  scroll_lock_state = ledStates & LED_SCROLL_LOCK;
   
   draw_display();
   delay(1);  
